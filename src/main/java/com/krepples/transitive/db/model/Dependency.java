@@ -1,17 +1,20 @@
 package com.krepples.transitive.db.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
-import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 
 @Entity
@@ -22,10 +25,9 @@ public class Dependency {
 
   public Dependency() {}
 
-  public Dependency(String name, String version, Dependency parent) {
+  public Dependency(String name, String version) {
     this.name = name;
     this.version = version;
-    this.parent = parent;
   }
 
   @Id
@@ -40,13 +42,13 @@ public class Dependency {
 
   private String version;
 
-  @ManyToOne
-  @JoinColumn(name = "parent")
-  private Dependency parent;
-
   // TODO - Remove eager loading
-  @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER)
-  private List<Dependency> childDependencies = new ArrayList<>();
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(
+    name="dependency_relations",
+    joinColumns=@JoinColumn(name="parent_id", referencedColumnName="id"),
+    inverseJoinColumns=@JoinColumn(name="child_id", referencedColumnName="id"))
+  private Set<Dependency> childDependencies = new HashSet<>();
 
   public Long getId() {
     return id;
@@ -72,16 +74,38 @@ public class Dependency {
     this.version = version;
   }
 
-  public void setParent(Dependency parent) {
-    this.parent = parent;
-  }
-
-  public List<Dependency> getChildDependencies() {
+  public Set<Dependency> getChildDependencies() {
     return childDependencies;
   }
 
   @Override
   public String toString() {
     return "Dependency [name=" + this.name + ", version=" + this.version + "]";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (o == this) {
+      return true;
+    }
+    if (o.getClass() != getClass()) {
+      return false;
+    }
+    Dependency rhs = (Dependency)o;
+    return new EqualsBuilder()
+      .append(name, rhs.name)
+      .append(version, rhs.version)
+      .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder()
+      .append(name)
+      .append(version)
+      .toHashCode();
   }
 }

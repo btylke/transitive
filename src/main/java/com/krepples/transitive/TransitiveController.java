@@ -20,11 +20,6 @@ public class TransitiveController {
   @Autowired
   private DependencyService dependencyService;
 
-  @RequestMapping("/")
-  public String index() {
-    return "All the transitive dependencies!";
-  }
-
   @GetMapping("/{dependency}")
   @ResponseBody
   public Dependency getDependencies(
@@ -64,6 +59,8 @@ public class TransitiveController {
     if (dependency == null) {
       throw new EntityNotFoundException("Cannot locate dependency with that id.");
     }
+
+    dependency = dependencyService.findByNameAndVersion(dependency.getName(), dependency.getVersion());
     return dependencyService.create(name, version, dependency);
   }
 
