@@ -28,11 +28,12 @@ public class DependencyServiceImpl implements DependencyService {
     Dependency child = findByNameAndVersion(name, version);
     if (child == null) {
       child = new Dependency(name, version);
+      child = repository.save(child);
     }
 
     setParent(parent, child);
 
-    return repository.save(child);
+    return child;
   }
 
   @Transactional
