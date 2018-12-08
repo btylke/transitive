@@ -1,20 +1,26 @@
+#!/usr/bin/python3
+
 import requests
 import time
+from multiprocessing.pool import Pool
 
-total = 0
+pool = Pool(10) 
 
-# create a top level parent
-requests.post('http://127.0.0.1:8080/?name=parent&version=0')
+def createDependency(id):
+	print ("Creating child: ", id)
+	requests.post("http://127.0.0.1:8080/?name=child&version=%d&parentName=parent&parentVersion=0" % id)
 
-for i in xrange(1000):
-    start = time.time()
-    for n in xrange(1000):
-        print "Creating child: ", total
-        requests.post("http://127.0.0.1:8080/?name=child&version=%d&parentName=parent&parentVersion=0" % total)
-        total += 1
+def main():
+	# create a top level parent
+	requests.post('http://127.0.0.1:8080/?name=parent&version=0')
 
-    print "Added 1000 Children in: " + str(time.time() - start)
+	pool.map(createDependency, range(0, 1000000))
+	pool.close() 
+	pool.join() 
+		
+	start = time.time()
+	requests.get("http://127.0.0.1:8080/?name=parent&version=0")
+	print ("Time to load a parent with 1,000,000 children: " + str(time.time() - start))
 
-start = time.time()
-requests.get("http://127.0.0.1:8080/?name=parent&version=0")
-print "Time to load a parent with 1,000,000 children: " + str(time.time() - start)
+if __name__ == '__main__':
+    main()
