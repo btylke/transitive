@@ -6,21 +6,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.*;
 
 @Entity
 @NamedEntityGraph(
     name = "childDependency",
     attributeNodes = @NamedAttributeNode("childDependencies"))
+@Table(name = "dependencies")
 public class Dependency {
 
   public Dependency() {}
