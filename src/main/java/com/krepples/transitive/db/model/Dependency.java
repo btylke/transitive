@@ -86,6 +86,7 @@ public class Dependency {
     if (o.getClass() != getClass()) {
       return false;
     }
+
     Dependency rhs = (Dependency)o;
     return new EqualsBuilder()
       .append(name, rhs.name)
