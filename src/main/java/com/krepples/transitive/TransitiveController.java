@@ -2,15 +2,11 @@ package com.krepples.transitive;
 
 import com.krepples.transitive.db.model.Dependency;
 import com.krepples.transitive.services.DependencyService;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -73,5 +69,75 @@ public class TransitiveController {
     @RequestParam(name="version") String version
   ) {
     return dependencyService.create(name, version, parentName, parentVersion);
+  }
+
+  @GetMapping("/tree/{dependency}")
+  @ResponseBody
+  public String getDependencyTree(
+          @PathVariable(name="dependency") Dependency dependency
+  ) {
+    if (dependency != null) {
+      // Avoid lazy loading issues
+      dependency = dependencyService.findByNameAndVersion(dependency.getName(), dependency.getVersion());
+      return dependencyService.getDependencyTree(dependency).replaceAll("\n", "<br/>");
+    } else {
+      throw new EntityNotFoundException("Cannot locate dependency with that id.");
+    }
+  }
+
+  @GetMapping("/tree/")
+  @ResponseBody
+  public String getDependencyTree(
+          @RequestParam(name="name") String name,
+          @RequestParam(name="version") String version
+  ) {
+    Dependency dependency = dependencyService.findByNameAndVersion(name, version);
+
+    if (dependency != null) {
+      return dependencyService.getDependencyTree(dependency).replaceAll("\n", "<br/>");
+    } else {
+      throw new EntityNotFoundException("Cannot locate dependency with that id.");
+    }
+  }
+
+  @GetMapping("/tree/export/{dependency}")
+  @ResponseBody
+  public ResponseEntity exportDependencyTree(
+          @PathVariable(name="dependency") Dependency dependency
+  ) {
+    if (dependency != null) {
+      // Avoid lazy loading issues
+      dependency = dependencyService.findByNameAndVersion(dependency.getName(), dependency.getVersion());
+      String tree = dependencyService.getDependencyTree(dependency);
+
+      return ResponseEntity.ok()
+              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=dependency_tree.txt")
+              .contentType(MediaType.TEXT_PLAIN)
+              .contentLength(tree.length())
+              .body(tree);
+    } else {
+      throw new EntityNotFoundException("Cannot locate dependency with that id.");
+    }
+  }
+
+  @GetMapping("/tree/export/")
+  @ResponseBody
+  public ResponseEntity exportDependencyTree(
+          @RequestParam(name="name") String name,
+          @RequestParam(name="version") String version
+  ) {
+    Dependency dependency = dependencyService.findByNameAndVersion(name, version);
+
+    if (dependency != null) {
+      String tree = dependencyService.getDependencyTree(dependency);
+
+      return ResponseEntity.ok()
+          .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=dependency_tree.txt")
+          .contentType(MediaType.TEXT_PLAIN)
+          .contentLength(tree.length())
+          .body(tree);
+    } else {
+      throw new EntityNotFoundException("Cannot locate dependency with that id.");
+    }
   }
 }

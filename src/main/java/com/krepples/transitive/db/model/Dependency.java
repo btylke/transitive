@@ -1,5 +1,6 @@
 package com.krepples.transitive.db.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -66,6 +67,7 @@ public class Dependency {
     this.version = version;
   }
 
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public Set<Dependency> getChildDependencies() {
     return childDependencies;
   }

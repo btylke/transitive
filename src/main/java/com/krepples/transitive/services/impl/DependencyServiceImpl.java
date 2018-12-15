@@ -21,6 +21,11 @@ public class DependencyServiceImpl implements DependencyService {
     return repository.findByNameAndVersion(name, version);
   }
 
+  public String getDependencyTree(Dependency dependency) {
+    return repository.getDependencyTree(dependency.getId());
+  }
+
+
   @Transactional
   @Override
   public Dependency create(String name, String version, Dependency parent) {
